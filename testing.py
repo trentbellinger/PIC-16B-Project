@@ -6,12 +6,15 @@ from flight_database import get_flight_data
 
 route_delays = pd.read_csv('route_delays.csv')
 airport_coords_df = pd.read_csv('airport_coords_df.csv')
+dep_delay = pd.read_csv('dep_delay.csv')
 airport_coordinates = airport_coords_df.set_index('ORIGIN')[['lat', 'lon']].to_dict(orient='index')
 
 route_delays['route_key'] = route_delays['ORIGIN'] + '_' + route_delays['DEST']
 route_delays = route_delays.drop_duplicates(subset='route_key')
 # route group dictionary
 route_dict = route_delays.set_index('route_key')['Group'].to_dict()
+count_dict = dep_delay.set_index('ORIGIN')['flight_count'].to_dict()
+dep_del_dict = dep_delay.set_index('ORIGIN')['DEP_DEL15'].to_dict()
 
 # Initialize the app
 app = Dash(__name__)
@@ -39,6 +42,15 @@ app.layout = html.Div([
         - 4: 0.25 < delay proportion <= 0.3
         - 5: delay proportion > 0.3
     """, style={'margin': '20px', 'padding': '20px', 'border': '1px solid #ddd', 'borderRadius': '5px'}),
+    dcc.RadioItems(
+        id='vis-mode-selector',
+        options=[
+            {'label': 'Flight Routes', 'value': 'routes'},
+            {'label': 'Heatmap', 'value': 'heatmap'}
+        ],
+        value='routes',  # Default value
+        labelStyle={'display': 'block'}
+    ),
 
     # Main container for the layout below the markdown text block
     html.Div([
@@ -68,13 +80,14 @@ app.layout = html.Div([
 # Callback to update the map based on the inputs
 @app.callback(
     Output('map', 'figure'),
-    [Input('plot-button', 'n_clicks')],
+    [Input('plot-button', 'n_clicks'),
+     Input('vis-mode-selector', 'value')],
     [State({'type': 'departure-input', 'index': ALL}, 'value'),
      State({'type': 'arrival-input', 'index': ALL}, 'value')]
 )
 
 
-def update_map(n_clicks, departures, arrivals):
+def update_map(n_clicks, vis_mode, departures, arrivals):
     routes = []
 
     # loop through each pair of depature and arrival inputs
@@ -84,6 +97,8 @@ def update_map(n_clicks, departures, arrivals):
             route_key = f"{dep}_{arr}"
             # Look up the group for the current route
             group = route_dict.get(route_key)  
+            count = count_dict.get(route_key)
+            delay_proportion = dep_del_dict.get(route_key)
             dep_coords = airport_coordinates.get(dep)
             arr_coords = airport_coordinates.get(arr)
 
@@ -97,12 +112,21 @@ def update_map(n_clicks, departures, arrivals):
                     "departure_lon": dep_coords['lon'],
                     "arrival_lat": arr_coords['lat'],
                     "arrival_lon": arr_coords['lon'],
-                    "group": group
+                    "delay_proportion": delay_proportion,
+                    "group": group,
+                    "flight_count": count
                 }
                 routes.append(route)
+    
 
     # Now, use the 'routes' list to plot on the map
-    fig = create_figure_with_routes(routes)  # Adjust this function to create the figure based on your routes list
+    if vis_mode == 'heatmap':
+        fig = create_composite_map()
+    elif vis_mode == 'routes':
+        fig = create_figure_with_routes(routes)  # Adjust this function to create the figure based on your routes list
+    else:
+        # Default case if neither mode is selected
+        fig = go.Figure()
 
     return fig
 
@@ -148,6 +172,46 @@ def create_figure_with_routes(routes):
         ),
     )
     return fig
+
+# Assuming 'routes' is a DataFrame with columns for departure and arrival coordinates,
+# number of flights, and delay proportions
+
+def create_composite_map():    
+    
+    fig = go.Figure(data=go.Scattergeo(
+        lon = dep_delay['ORIGIN_LONGITUDE'],
+        lat = dep_delay['ORIGIN_LATITUDE'],
+        text = dep_delay['ORIGIN'],
+        customdata = dep_delay[['flight_count', 'DEP_DEL15']],  # Add flight count and delay proportions to the custom data
+        hovertemplate = (
+            "<b>%{text}</b><br>"
+            "Flight Count: %{customdata[0]}<br>"
+            "Delay Proportion: %{customdata[1]:.2f}<extra></extra>"  # Format delay proportion to show two decimal places
+        ),
+        marker = dict(
+            size = dep_delay['DEP_DEL15'] * 50,  # Scale the points based on delay proportion
+            color = dep_delay['DEP_DEL15'],
+            colorscale = 'Viridis',
+            showscale = True,
+            colorbar_title = 'Delay Proportion'
+        )
+    ))
+
+    fig.update_layout(
+        title = 'Heatmap of Flight Delay Proportions',
+        geo = dict(
+            scope = 'usa',
+            projection_type = 'albers usa',
+            showland = True,
+            landcolor = 'rgb(217, 217, 217)',
+            subunitcolor = "rgb(255, 255, 255)"
+        )
+    )
+    
+    
+
+    return fig
+
 
 
 # Run the app
