@@ -1,0 +1,31 @@
+{% extends 'base.html'%}
+
+{% block header%}
+    <h1>{% block title%}Flight Input{% endblock %}</h1>
+{% endblock %}
+
+
+{% block content %}
+    <form method="post">
+        {%for i in range(0,numFlight)%}
+          <h1>Flight Number {{i+1}}</h1>
+          <label for="origin">Departing from:</label>
+          <input name="origin" id="origin" value="{{ request.form['origin'] }}" required>
+          <label for="destination">Destination:</label>
+          <input name="destination" id="destination">{{ request.form['destination']
+              }}</textarea>
+          <label for="airline">Choose an airline:</label>
+              <select name="airline" id="airline">
+                  <option value="American">American</option>
+                  <option value="Southwest">Southwest</option>
+                  <option value="Delta">Delta</option>
+                  <option value="United">United</option>
+              </select>
+          <label for="date">Departure date and time:</label>
+          <input type="datetime-local" name="date" id="date" value="date" required>
+        {%endfor%}
+      <input type="submit" value="Create Itinerary">
+    </form>
+
+
+{% endblock %}
