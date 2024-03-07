@@ -7,6 +7,7 @@ from flight_database import get_flight_data
 route_delays = pd.read_csv('route_delays.csv')
 airport_coords_df = pd.read_csv('airport_coords_df.csv')
 dep_delay = pd.read_csv('dep_delay.csv')
+dep_count = pd.read_csv('dep_count.csv')
 airport_coordinates = airport_coords_df.set_index('ORIGIN')[['lat', 'lon']].to_dict(orient='index')
 
 route_delays['route_key'] = route_delays['ORIGIN'] + '_' + route_delays['DEST']
@@ -17,7 +18,8 @@ count_dict = dep_delay.set_index('ORIGIN')['flight_count'].to_dict()
 dep_del_dict = dep_delay.set_index('ORIGIN')['DEP_DEL15'].to_dict()
 
 # Initialize the app
-app = Dash(__name__)
+#app = Dash(__name__)
+app = Dash(__name__, suppress_callback_exceptions=True)
 
 # App layout
 # <div> defines a division or section 
@@ -46,44 +48,113 @@ app.layout = html.Div([
         id='vis-mode-selector',
         options=[
             {'label': 'Flight Routes', 'value': 'routes'},
-            {'label': 'Heatmap', 'value': 'heatmap'}
+            {'label': 'Heatmap', 'value': 'heatmap'},
+            {'label': 'Rush Hour', 'value': 'hour'}
         ],
         value='routes',  # Default value
         labelStyle={'display': 'block'}
     ),
+    # NEW EDIT
+    html.Div(id='page-content')
+])
 
-    # Main container for the layout below the markdown text block
-    html.Div([
-        # Container for the first column (inputs and the button)
-        html.Div([
-            # Sub-container for just the inputs
+@app.callback(
+    Output('page-content', 'children'),
+    [Input('vis-mode-selector', 'value')]
+)
+
+def display_page(vis_mode):
+    # Return layout corresponding to the selected mode 
+    if vis_mode == 'routes':
+        return html.Div([
             html.Div([
+        # Container for the first column (inputs and the button)
+            html.Div([
+                # Sub-container for just the inputs
                 html.Div([
-                    dcc.Input(id={'type': 'departure-input', 'index': i}, type='text', placeholder=f'Departure {i}'),
-                    dcc.Input(id={'type': 'arrival-input', 'index': i}, type='text', placeholder=f'Arrival {i}')
-                ], style={'padding': '10px'})
-                for i in range(1, 11)
-            ]),
-            # Button to plot routes
-            html.Button('Plot Routes', id='plot-button', n_clicks=0, style={'margin-top': '20px'}),
-        ], style={'display': 'flex', 'flexDirection': 'column', 'marginRight': '20px'}),  # marginRight added to separate the columns
+                    html.Div([
+                        dcc.Input(id={'type': 'departure-input', 'index': i}, type='text', placeholder=f'Departure {i}'),
+                        dcc.Input(id={'type': 'arrival-input', 'index': i}, type='text', placeholder=f'Arrival {i}')
+                    ], style={'padding': '10px'})
+                    for i in range(1, 11)
+                ]),
+                # Button to plot routes
+                html.Button('Plot Routes', id='plot-button', n_clicks=0, style={'width':'50%', 'margin': '10px auto'}),
+            ], style={'display': 'flex', 'flexDirection': 'column', 'marginRight': '20px'}),  # marginRight added to separate the columns
         
-        # Container for the second column (the map)
-        html.Div([
-            dcc.Graph(id='map')
-        ], style={'flex': 2}),
-    ], style={'display': 'flex', 'width': '100%'}),
-], style={'alignItems': 'flex-start', 'justifyContent': 'center', 'height': '100vh'})
+            # Container for the second column (the map)
+            html.Div([
+                dcc.Graph(id='map', figure=go.Figure(layout={'title': 'Please select departure and arrival locations and click "Plot Routes"'}))
+            ], style={'flex': 2}),
+        ], style={'display': 'flex', 'width': '100%'}),
+        ], style={'alignItems': 'flex-start', 'justifyContent': 'center', 'height': '100vh'}, id='content-route')
 
+    elif vis_mode == 'heatmap':
+        return html.Div([
+            dcc.Graph(id='heat-map', figure=create_composite_map())
+        ], id = 'content_heatmap', style={'display': 'flex', 'flexDirection': 'column', 'marginRight': '20px'})
+    elif vis_mode == 'hour':
+        return html.Div([
+            html.Div([
+                    dcc.Input(id='origin-input', type='text', placeholder= 'Departure'),
+                    dcc.Input(id='hour-input', type='text', placeholder= 'Hour')
+                ], style={'padding': '10px'}),
+            html.Button('Update', id='update-button', n_clicks=0),
+            dcc.Graph(id='hist', figure = go.Figure(layout={'title': 'Please enter departure location and hour and click "Update"'}))
+        ], id='content-hour')
+    else:
+        return html.Div("Select a visualization mode.", id='default-view')
+
+
+@app.callback(
+    Output('hist', 'figure'),
+    [Input('vis-mode-selector', 'value'),
+     Input('update-button', 'n_clicks')],
+    [State('origin-input', 'value'), State('hour-input', 'value')]
+)
+def update_hourly_activity(n_clicks, vis_mode, selected_origin, selected_hour):
+    # This function should generate the histogram figure based on the selected origin and hour
+    # You would write the logic here to filter your DataFrame based on the selected origin and hour,
+    # then create a histogram of flight counts for each hour of the day.
+    
+    # Otherwise, generate the histogram for the selected origin and hour
+    filtered_df = dep_count[dep_count['ORIGIN'] == selected_origin]
+    
+    # Create a barplot of flights by hour
+    # First, we create the text that will be displayed on each bar
+    filtered_df['text'] = 'Airport: ' + filtered_df['ORIGIN'] \
+                      + '<br>Hour: ' + filtered_df['dep_hour'].astype(str) \
+                      + '<br>Flights: ' + filtered_df['dep_count'].astype(str)
+
+    # Now we can create the bar plot
+    fig = px.bar(filtered_df, x='dep_hour', y='dep_count', title='Hourly Flight Activity') 
+
+    fig.update_layout(xaxis_title='Departure Hour', yaxis_title='Numer of Flights')
+    # To add hover text, you can use the hover_data parameter
+    fig.update_traces(hovertemplate=filtered_df['text'])
+
+    # Highlight the selected hour if one is selected
+    
+    try:
+        selected_hour = int(selected_hour)
+        if 0 <= selected_hour <= 23:
+            fig.add_vline(x=selected_hour, line_color="red", annotation_text="Selected Hour")
+    except (ValueError, TypeError):
+        pass
+
+    return fig
 
 
 # Callback to update the map based on the inputs
 @app.callback(
+    #Output('content-route', 'children'),
     Output('map', 'figure'),
-    [Input('plot-button', 'n_clicks'),
-     Input('vis-mode-selector', 'value')],
+    [Input('vis-mode-selector', 'value'),
+     Input('plot-button', 'n_clicks')
+    ],
     [State({'type': 'departure-input', 'index': ALL}, 'value'),
-     State({'type': 'arrival-input', 'index': ALL}, 'value')]
+     State({'type': 'arrival-input', 'index': ALL}, 'value'),
+    ]
 )
 
 
@@ -118,15 +189,7 @@ def update_map(n_clicks, vis_mode, departures, arrivals):
                 }
                 routes.append(route)
     
-
-    # Now, use the 'routes' list to plot on the map
-    if vis_mode == 'heatmap':
-        fig = create_composite_map()
-    elif vis_mode == 'routes':
-        fig = create_figure_with_routes(routes)  # Adjust this function to create the figure based on your routes list
-    else:
-        # Default case if neither mode is selected
-        fig = go.Figure()
+    fig = create_figure_with_routes(routes)  
 
     return fig
 
@@ -176,8 +239,14 @@ def create_figure_with_routes(routes):
 # Assuming 'routes' is a DataFrame with columns for departure and arrival coordinates,
 # number of flights, and delay proportions
 
-def create_composite_map():    
-    
+
+@app.callback(
+    Output('content-heatmap', 'children'),
+    Input('vis-mode-selector', 'value')
+)
+
+def create_composite_map():
+
     fig = go.Figure(data=go.Scattergeo(
         lon = dep_delay['ORIGIN_LONGITUDE'],
         lat = dep_delay['ORIGIN_LATITUDE'],
