@@ -26,13 +26,10 @@ app = Dash(__name__, suppress_callback_exceptions=True)
 app.layout = html.Div([
     # Markdown text block at the top
     dcc.Markdown("""
-        ## Flight Route Information
+        ## Flight Routes Information
 
         This app allows you to visualize flight routes between airports and the average proportion of delays. Enter the airport codes for 
         departures and arrivals, and press "Plot Routes" to see the routes on the map.
-
-        - Use the input fields to enter airport codes.
-        - Click "Plot Routes" to display the routes.
 
         Each number in the legend is a group number that represents the proportion of delayed flights on average for each route.
 
@@ -43,6 +40,16 @@ app.layout = html.Div([
         - 3: 0.2 < delay proportion <= 0.25
         - 4: 0.25 < delay proportion <= 0.3
         - 5: delay proportion > 0.3
+        
+        ## Heatmap Information
+
+        The heatmap illustrates U.S. airport departures, highlighting flight volume and delay frequency. 
+        Larger circles denote more flights; color intensity reflects higher delay percentages.
+
+        ## Rush Hour Information
+
+        This app offers insights into the frequency and peak hours of flight departures from specific airports. 
+        By inputting an airport code and a flight's departure time, users can generate a bar chart that reveals the airport's busiest periods, aiding in understanding rush hour trends. 
     """, style={'margin': '20px', 'padding': '20px', 'border': '1px solid #ddd', 'borderRadius': '5px'}),
     dcc.RadioItems(
         id='vis-mode-selector',
@@ -116,6 +123,9 @@ def update_hourly_activity(n_clicks, vis_mode, selected_origin, selected_hour):
     # This function should generate the histogram figure based on the selected origin and hour
     # You would write the logic here to filter your DataFrame based on the selected origin and hour,
     # then create a histogram of flight counts for each hour of the day.
+
+    if selected_origin is not None:
+        selected_origin = selected_origin.upper()
     
     # Otherwise, generate the histogram for the selected origin and hour
     filtered_df = dep_count[dep_count['ORIGIN'] == selected_origin]
@@ -160,6 +170,9 @@ def update_hourly_activity(n_clicks, vis_mode, selected_origin, selected_hour):
 
 def update_map(n_clicks, vis_mode, departures, arrivals):
     routes = []
+
+    departures = [dep.upper() for dep in departures if dep is not None]
+    arrivals = [arr.upper() for arr in arrivals if arr is not None]
 
     # loop through each pair of depature and arrival inputs
     for dep, arr in zip(departures, arrivals):
