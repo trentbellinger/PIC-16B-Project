@@ -9,6 +9,7 @@ import plotly.graph_objs as go
 import pandas as pd
 import dash
 from dash import Input, Output, callback, dcc, html, State, MATCH, ALL, Dash
+import dash_bootstrap_components as dbc
 import os
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.serving import run_simple
@@ -58,6 +59,7 @@ Will add more to HTML page as right now it is just a welcome message. Planning o
 @server.route('/')
 def index():
     return render_template('blog/index.html')
+    
     
 '''
 Page where user enters a single flight to check the estimate of it being delayed. Page is reached via the link in the navbar and will redirect to /flightDisp page where flight information is to be displayed.
@@ -110,13 +112,15 @@ def flights():
             
             # Send user to Dash app for visualization
             return redirect('/dashFlight/')
+            #return redirect(url_for("flightDisp", origin = origin, destination = destination, airline = airline, date=date, arrivalTime=arrivalTime))
         
         # Flash error if one was present
         flash(error)
     
     #Rendering template, passing in airlineDict and flightInputDict to provide options in the searchable dropdown menus
     return render_template('blog/flights.html', airlineDict = airlineDict, flightInputDict = flightInputDict)
-    
+ 
+ 
 '''
 MODEL HERE?
 
@@ -136,7 +140,8 @@ def flightDisp():
     
     #Rendering template, passing in the flight information we acquired from the previous page
     return render_template('blog/flightDisp.html', origin = origin, destination=destination, airline=airline, date=date, arrivalTime = arrivalTime)
-    
+  
+  
 '''
 Page that begins process of inputting an itinerary by getting user input on how many flights are to be inputted. As of now capped at 20 flights. Will redirect to /itinFlights where user will be able to input the details of their flights.
 '''
@@ -182,6 +187,7 @@ def itineraryInput():
         
     return render_template('blog/itinNum.html')
 
+
 '''
 Page where user is able to input the information for the number of flights they specified on the /itinNum page. Page will forward to /itinDisp page where the complete itinerary is to be displayed.
 Still need to write the code to save user input.
@@ -220,6 +226,7 @@ def itinFlights():
     # Rendering template, passing in numFlight for iterative purposes, as well as two dictionaries that the searchable dropdowns will access for their options
     return render_template('blog/itinFlights.html', numFlight = numFlight, airlineDict=airlineDict, flightInputDict = flightInputDict)
 
+
 '''
 Page displays a single itinerary of their choosing from page /allItins. Will have a 'Back to my itineraries' and 'Back to main' buttons.
 Still need to write code and finish HTML file.
@@ -228,6 +235,7 @@ NOTE: May or may not be implemented
 @server.route('/myItin')
 def myItin():
     return render_template('blog/myItin.hmtl')
+
 
 '''
 Saves a created itinerary and then reroutes to /allItins page. Only possible to be called if user is logged in.
@@ -239,13 +247,72 @@ def saveItin():
     #write code to enter itinerary into database
     return redirect(url_for('allItins'))
 
+
 '''
 This function defines the layout for our Dash app once the information to be displayed has been read in. This was easiest way to pass information from Flask to Dash.
 Function takes in the name of the app we wish to define the layout for, as well as a list containing the flight information for one or more flights.
 NOTE: Going to add navbar from Flask app to allow user to get back to main site. Need to finish formatting.
 '''
 def layoutDash(dashName, flightDict):
+        
+        # Applying styling to Dash app
+        dashName.index_string = '''
+            <!DOCTYPE html>
+            <html>
+                <head>
+                    {%metas%}
+                    <title>{%title%}</title>
+                    {%favicon%}
+                    {%css%}
+                    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+                </head>
+                
+            </section>
+                <body>
+                    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+                    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+                    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+                        <div></div>
+                    {%app_entry%}
+                    <footer>
+                        {%config%}
+                        {%scripts%}
+                        {%renderer%}
+                    </footer>
+                    <div></div>
+                </body>
+            </html>
+            '''
         dashName.layout = html.Div([
+        
+        # Creating Navbar to allow user to travel back to main app
+        dbc.NavbarSimple(
+        
+        children=[
+            dbc.NavItem(dbc.NavLink("Home", href="/", external_link=True)),
+            dbc.NavItem(dbc.NavLink("Check Flight", href="/flights", external_link=True)),
+            dbc.NavItem(dbc.NavLink("Create Itinerary", href="/itinNum", external_link=True)),
+            #dbc.NavItem(dbc.NavLink("Project Info", href="/about/", external_link=True)),
+            
+            dbc.NavItem(dbc.DropdownMenu(
+                children=[
+                    dbc.DropdownMenuItem("Account", header=True),
+                    dbc.DropdownMenuItem("Register", href="/auth/register", external_link=True),
+                    dbc.DropdownMenuItem("Login", href="/auth/login", external_link=True)
+                ],
+                nav=True,
+                in_navbar=True,
+                label="More",
+            )),
+        ],
+        brand="Project Site",
+        brand_external_link = True,
+        brand_href="/",
+        color="primary",
+        dark=True,
+        fluid=True,
+        ),
+        
         # Markdown text block at the top
         dcc.Markdown("""
             ## Flight Route Information
@@ -306,11 +373,11 @@ def layoutDash(dashName, flightDict):
         ], style={'display': 'flex', 'width': '100%'}),
     ], style={'alignItems': 'flex-start', 'justifyContent': 'center', 'height': '100vh'})
 
+
 '''
 Dash1 Callback Function
 '''
 # Callback to update the map based on the inputs
-
 @dash1.callback(
     Output('map', 'figure'),
     [Input('plot-button', 'n_clicks'),
@@ -440,8 +507,5 @@ def create_composite_map():
             subunitcolor = "rgb(255, 255, 255)"
         )
     )
-    
-    
-
     return fig
 
