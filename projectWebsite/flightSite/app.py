@@ -26,6 +26,11 @@ route_delays = pd.read_csv('route_delays.csv')
 airport_coords_df = pd.read_csv('airport_coords_df.csv')
 dep_delay = pd.read_csv('dep_delay.csv')
 flightInputs = pd.read_csv('airportInput.csv')
+distances = pd.read_csv('distances.csv')
+
+from sklearn.ensemble import RandomForestClassifier
+from joblib import load
+rf_model = load("flights_rf.joblib")
 
 # Adjusting dataframe contents
 route_delays['route_key'] = route_delays['ORIGIN'] + '_' + route_delays['DEST']
@@ -110,16 +115,61 @@ def flights():
             # Calling layoutDash to pass the flight information to Dash app, passed in name of app and flightList
             layoutDash(dash1, flightList)
             
+            # get airline abbreviation
+            airline_abr = airlineDict[airline]
+            
+            # get day, month, year, and time as integers
+            dep_date_split = date.replace('/', ' ').replace(':', ' ').split()
+            day_of_month = int(dep_date_split[0])
+            month = int(dep_date_split[1])
+            year = int(dep_date_split[2])
+            dep_time = int(dep_date_split[3] + dep_date_split[4])
+            
+            # get arrival time
+            arr_date_split = arrivalTime.replace('/', ' ').replace(':', ' ').split()
+            arr_time = int(arr_date_split[3] + arr_date_split[4])
+
+            # get origin longitude and latitude
+            origin_lon = airport_coords_df.loc[airport_coords_df["ORIGIN"] == origin, "lon"].tolist()[0]
+            origin_lat = airport_coords_df.loc[airport_coords_df["ORIGIN"] == origin, "lat"].tolist()[0]
+
+            # get destination longitude and latitude
+            dest_lon = airport_coords_df.loc[airport_coords_df["ORIGIN"] == destination, "lon"].tolist()[0]
+            dest_lat = airport_coords_df.loc[airport_coords_df["ORIGIN"] == destination, "lat"].tolist()[0]
+
+            distance = distances.loc[(distances["ORIGIN"] == origin) & (distances["DEST"] == destination), "AVG_DISTANCE"].tolist()[0]
+
+            if airline in ['PT', 'YX', '9E', 'QX', 'OH', 'OO', 'C5', 'G7', 'MQ']:
+                carrier = 0
+            elif airline in ['HA', 'ZW', 'YV', 'WN']:
+                carrier = 1
+            elif airline in ['DL', 'AA', 'G4', 'UA', 'AS']:
+                carrier = 2
+            else:
+                carrier = 3
+
+            X_new = pd.DataFrame({'YEAR':year, 'MONTH':month, 'DAY_OF_MONTH':day_of_month, 
+                                  'DEP_TIME':dep_time, 'ARR_TIME':arr_time, 
+                                  'OP_UNIQUE_CARRIER':carrier, 'DISTANCE':distance, 
+                                  'ORIGIN_LATITUDE':origin_lat, 'ORIGIN_LONGITUDE':origin_lon, 
+                                  'DEST_LATITUDE':dest_lat, 'DEST_LONGITUDE':dest_lon}, index = [0])
+
+            pred = rf_model.predict(X_new).tolist()[0]
+
+            if pred == 0:
+                delay = "Not delayed"
+            elif pred == 1:
+                delay = "Delayed"
+            
             # Send user to Dash app for visualization
-            return redirect('/dashFlight/')
-            #return redirect(url_for("flightDisp", origin = origin, destination = destination, airline = airline, date=date, arrivalTime=arrivalTime))
+            #return redirect('/dashFlight/')
+            return redirect(url_for("flightDisp", origin=origin, destination=destination, airline=airline, date=date, arrivalTime=arrivalTime, delay=delay))
         
         # Flash error if one was present
         flash(error)
     
     #Rendering template, passing in airlineDict and flightInputDict to provide options in the searchable dropdown menus
     return render_template('blog/flights.html', airlineDict = airlineDict, flightInputDict = flightInputDict)
- 
  
 '''
 MODEL HERE?
@@ -135,6 +185,7 @@ def flightDisp():
     airline = request.args.get('airline')
     date = request.args.get('date')
     arrivalTime = request.args.get('arrivalTime')
+    delay = request.args.get('delay')
     
     # We can input our model here, determining what information we wish to show the user afterwards
     
