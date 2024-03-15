@@ -17,11 +17,11 @@
     
     <br>
         <h4>Data Acquisition</h4>
-            <p>Summarize data acquisition process</p>
+            <p>We started by importing flights data from the US Bureau of Transportation. The data contains all flights that have departure and arrival location in the United States from November of 2022 to November of 2023. We then obtained data on every airport in the United States using an API. This ended up being a very large amount of data (about 6GB). We stored the data in a SQL database to allow us to subset it and access it more easily.</p>
     </br>
 
     <h4>Creating Model</h4>
-        <p>Summarize model creation process</p>
+        <p>We wanted to predict whether or not a flight would be delayed by more that 15 minutes. This is a binary classification problem. We started by testing many deep neural network models, but ended up usign a random forest model. This model can predict whether a flight will be delayed with 83% accuracy.</p>
 
     <br>
         <h4>Webapp Creation</h4>
