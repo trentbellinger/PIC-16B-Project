@@ -22,8 +22,6 @@ Webapp Creation:
 
 Our webapp was built using the Flask framework, as well as implementing visualizations from Dash on top, which are discussed in the following section. The main purpose for the website is to allow our users to access model results for their flights in an easy, intuitive manner. In its simplest form, this is accomplished by the 'Check Flight' page. This page allows a user to input their flight origin, destination, airline, and arrival and departure times to be used by our model. They are then redirected to a page displaying our estimate of their flight delays. Similarly, the itinerary page allows a user to input multiple flights, perhaps for an entire travel day, and are shown a visualization of their travel plan AS WELL AS A MODEL ESTIMATE FOR THEIR FLIGHTS SHOULD THEY DESIRE? Additionally, a logged in user is able to SAVE THEIR ITINERARIES and flights for later, should they wish to come back and revisit them at a later date.
 
-CONTINUE...
-
 Dash Visuals:
 
 Summarize creation of Dash app
