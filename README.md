@@ -26,10 +26,7 @@ Dash Visuals:
 
 Summarize creation of Dash app
 
-## Datasets
+## Database Link:
 
-The datasets for this project are available in the following Google Drive folder:
-[Access the Dataset](https://drive.google.com/drive/folders/17J3bvLxA_E77DsOautMZ40Y_2-RbjuhY?usp=sharing)
-
-## Database Links
+The SQL database that we used for this project was too large to put in the GitHub, but it can be downloaded using this link:
 [Access the Database](https://flightdata16b.s3.us-west-1.amazonaws.com/flight_data.db)
