@@ -44,5 +44,6 @@ The SQL database that we used for this project was too large to put in the GitHu
 ## Guide on How to Use:
 
 1. Download the SQL database.
-2. Run the code in the FlightModel.ipynb file to create the model.
-3. Run the flask app found in the flightSite folder.
+2. Run the code in the FlightModel.ipynb after the "Model to Predict Flight Delay" section header. (the model creation and saving may take a few minutes to run)
+3. Add the flights_rf.joblib file to the flightSite folder.
+4. Run the flask app found in the flightSite folder.
