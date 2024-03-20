@@ -1,0 +1,57 @@
+{% extends 'base.html'%}
+
+{% block header%}
+    <h1>{%block title%}Your Itinieraries{%endblock%}
+{%endblock%}
+
+{%block content%}
+    {% for itinerary_id, itinerary_flights in flights|groupby('itin_id') %}
+        <h2>Itinerary {{loop.index}}</h2>
+        <table>
+            <tbody>
+                {% for flight in itinerary_flights %}
+                <tr>
+                    <th>Flight {{loop.index}}</th>
+                    <td> </td>
+                </tr>
+                <tr>
+                    <th style="padding: 5px;">Origin:</th>
+                    <td style="padding: 5px;">{{ flight.origin }}</td>
+                </tr>
+                <tr>
+                    <th style="padding: 5px;">Destination:</th>
+                    <td style="padding: 5px;">{{ flight.destination }}</td>
+                </tr>
+                <tr>
+                    <th style="padding: 5px;">Airline:</th>
+                    <td style="padding: 5px;">{{ flight.airline }}</td>
+                </tr>
+                <tr>
+                    <th style="padding: 5px;">Departure Time:</th>
+                    <td style="padding: 5px;">{{flight.depTime }}</td>
+                </tr>
+                <tr>
+                    <th style="padding: 5px;">Arrival Time:</th>
+                    <td style="padding: 5px;">{{flight.arrTime }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2">&nbsp;</td> <!-- Empty row -->
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <form method="post">
+            <div>
+                <input type="submit" name="action" value="See Itinerary {{loop.index}}">
+            </div>
+        </form>
+        
+    {% endfor %}
+    
+    <form method="post">
+        <div>
+            <button id="Enter" type="button" onclick="window.location.href = '{{ url_for('index') }}';">Main</button>
+        </div>
+    </form>
+
+{%endblock%}

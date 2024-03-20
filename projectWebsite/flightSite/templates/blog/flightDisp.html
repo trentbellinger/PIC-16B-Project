@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block header%}
+    <h1>{% block title %}Flight Information{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <form method="post">
+        <h3>Origin</h3>
+            <p>{{origin}}</p>
+        <h3>Destination</h3>
+            <p>{{destination}}</p>
+        <h3>Airline</h3>
+            <p>{{airline}}</p>
+        <h3>Date and Time</h3>
+            <p>{{date}}</p>
+        <h3>Arrival Time</h3>
+            <p>{{arrivalTime}}</p>
+        <h3>Model Output</h3>
+            <p>Based on your inputs, {{delay}}</p>
+            <p></p>
+        <div>
+            <input type="submit" name="action" value="See my flight">
+            {% if g.user %}
+                <input type="submit" name="action" value="Save as itinerary">
+            {% endif %}
+        </div>
+        <div>
+            <input type="submit" name="action" value="Back to main">
+        </div>
+    </form>
+{%endblock%}
+
+
+

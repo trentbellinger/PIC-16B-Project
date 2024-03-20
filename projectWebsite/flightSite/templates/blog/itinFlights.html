@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Input Flights</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css" />
+    </head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+          <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+              <img src="static/airplaneBrand3.png" alt="Brand Image" style="width: 40px;">Project Site</a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('index') }}">Home </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('flights') }}">Check Flight</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{{url_for('itineraryInput')}}">Create Itinerary</a>
+              </li>
+              {% if g.user %}
+                  <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      {{g.user['username']}}
+                    </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                          <a class="dropdown-item" href="{{ url_for('itinsDisp') }}">My Itineraries</a>
+                          <a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a>
+                        </div>
+                {% else %}
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Account
+                  </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                          <a class="dropdown-item" href="{{ url_for('auth.register') }}">Register</a>
+                          <a class="dropdown-item" href="{{ url_for('auth.login') }}">Login</a>
+                          </a>
+                        </div>
+                {% endif %}
+              </li>
+            </ul>
+          </div>
+        </nav>
+    <body>
+        <form method="post">
+            <div>
+                <div class="container">
+                    {% for i in range (0,numFlight)%}
+                        <h1 align="left">Flight Number {{i+1}}</h1>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label>Select Departure</label>
+                                <select name="origin{{i}}" data-live-search="true" id="origin{{i}}" class="form-control" title="Select Departure" required>
+                                {% for key in flightInputDict %}
+                                <option value="{{key}}">{{flightInputDict[key]}}</option>
+                                {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label>Select Destination</label>
+                                <select name="destination{{i}}" data-live-search="true" id="destination{{i}}" class="form-control" title="Select Destination" required>
+                                {% for key in flightInputDict %}
+                                <option value="{{key}}">{{flightInputDict[key]}}</option>
+                                {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="airline{{i}}">Choose an airline:</label>
+                                <select name="airline{{i}}" id="airline{{i}}" class="form-control" data-live-search="true" title="Select Airline" required>
+                                {% for key in airlineDict %}
+                                <option value="{{key}}">{{key}}</option>
+                                {% endfor %}
+                                </select>
+                        </div>
+                        <div>
+                            <label for="date{{i}}">Departure date and time:</label>
+                            <input type="datetime-local" name="date{{i}}" id="date{{i}}" value="date" class="form-control" required>
+                        <div>
+                            <label for="arrivalTime{{i}}">Estimated arrival time:</label>
+                            <input type="datetime-local" name="arrivalTime{{i}}" id="arrivalTime{{i}}" value="arrivalTime" class="form-control" required>
+                        </div>
+                        
+                    </div>
+                    {% endfor %}
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
+                <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js"></script>
+                <script>
+                    $(document).ready(function () {
+            
+                        $('#origin0').selectpicker();
+                        $('#destination0').selectpicker();
+                        $('#airline0').selectpicker();
+                    });
+                    $(document).ready(function () {
+            
+                        $('#origin1').selectpicker();
+                        $('#destination1').selectpicker();
+                        $('#airline1').selectpicker();
+                    });
+                    $(document).ready(function () {
+            
+                        $('#origin2').selectpicker();
+                        $('#destination2').selectpicker();
+                        $('#airline2').selectpicker();
+                    });
+                    $(document).ready(function () {
+            
+                        $('#origin3').selectpicker();
+                        $('#destination3').selectpicker();
+                        $('#airline3').selectpicker();
+                    });
+                    $(document).ready(function () {
+            
+                        $('#origin4').selectpicker();
+                        $('#destination4').selectpicker();
+                        $('#airline4').selectpicker();
+                    });
+                    $(document).ready(function () {
+            
+                        $('#origin5').selectpicker();
+                        $('#destination5').selectpicker();
+                        $('#airline5').selectpicker();
+                    });
+                    $(document).ready(function () {
+            
+                        $('#origin6').selectpicker();
+                        $('#destination6').selectpicker();
+                        $('#airline6').selectpicker();
+                    });
+                    $(document).ready(function () {
+            
+                        $('#origin7').selectpicker();
+                        $('#destination7').selectpicker();
+                        $('#airline7').selectpicker();
+                    });
+                    $(document).ready(function () {
+            
+                        $('#origin8').selectpicker();
+                        $('#destination8').selectpicker();
+                        $('#airline8').selectpicker();
+                    });
+                    $(document).ready(function () {
+            
+                        $('#origin9').selectpicker();
+                        $('#destination9').selectpicker();
+                        $('#airline9').selectpicker();
+                    });
+                </script>
+                <div>
+                    <input type="submit" name="action" value="See itinerary">
+                    {% if g.user %}
+                        <input type="submit" name="action" value="Save itinerary">
+                    {% endif %}
+                </div>
+            </div>
+                
+            
+        </form>
+    </body>
+</html>
+
+
