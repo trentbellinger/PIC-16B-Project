@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Input Itinerary{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <form method="post">
+        <div>
+            <label for="numFlight">Number of flights:</label>
+            <input name="numFlight" id="numFlight" value="{{ request.form['numFlight'] }}" class="form-control" required>
+        </div>
+        <div>
+            <input type="submit" value="Submit">
+        </div>
+    </form>
+{% endblock %}
