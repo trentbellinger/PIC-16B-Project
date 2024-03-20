@@ -30,3 +30,9 @@ Summarize creation of Dash app
 
 The SQL database that we used for this project was too large to put in the GitHub, but it can be downloaded using this link:
 [Access the Database](https://flightdata16b.s3.us-west-1.amazonaws.com/flight_data.db)
+
+## Guide on How to Use:
+
+1. Download the SQL database.
+2. Run the code in the FlightModel.ipynb file to create the model.
+3. Run the flask app found in the flightSite folder.
