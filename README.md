@@ -24,7 +24,17 @@ Our webapp was built using the Flask framework, as well as implementing visualiz
 
 ## Dash Visuals:
 
-Summarize creation of Dash app
+We created a Plotly Dash app that has interactive visuals to help users understand and get insight to flight delays. The app is equipped to handle data transformations and plotting, making it a comprehensive tool for travelers looking to optimize their itineraries.
+
+It features three core visualizations:
+
+1. Flight Routes Visualization: Users can input up to ten pairs of departure and arrival airport codes to plot the routes on a map. The routes are color-coded by average delay proportions, helping users identify which routes typically experience more delays.
+
+2. Heatmap: This displays a heatmap overlay on a U.S. map, showing the volume of flights departing from each airport (denoted by the size of the circles) and the proportion of those flights that are delayed (indicated by the color intensity).
+
+3. Rush Hour Analysis: By entering an airport code and a specific hour, users can generate a bar chart that reveals the busiest times for departures at that airport, providing insights into peak travel hours and potential rush times.
+
+The app's layout includes a markdown block at the top that explains the functionalities and how to use the app. A RadioItems selection lets users choose between the flight routes, heatmap, or rush hour visualizations, dynamically updating the display content based on their choice.
 
 ## Database Link:
 
